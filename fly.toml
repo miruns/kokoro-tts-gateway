@@ -1,0 +1,32 @@
+# Replace "kokoro-tts-gateway" with your Fly.io app name.
+app = "kokoro-tts-gateway"
+primary_region = "iad"
+
+[build]
+
+[env]
+  MODEL_DIR = "/app/models"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 2
+    soft_limit = 1
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "30s"
+    method = "GET"
+    path = "/health"
+    timeout = "5s"
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1
