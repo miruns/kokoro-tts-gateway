@@ -33,13 +33,12 @@ python -m venv .venv && source .venv/bin/activate  # or .venv\Scripts\activate o
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Download model files (requires a HuggingFace token with access to hexgrad/Kokoro-82M-ONNX)
-export HF_TOKEN=hf_YOUR_TOKEN
-python -c "
-from huggingface_hub import hf_hub_download
-hf_hub_download('hexgrad/Kokoro-82M-ONNX', 'kokoro-v0_19.onnx', local_dir='models')
-hf_hub_download('hexgrad/Kokoro-82M-ONNX', 'voices.bin', local_dir='models')
-"
+# 3. Download model files
+mkdir -p models
+curl -fSL -o models/kokoro-v1.0.onnx \
+  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+curl -fSL -o models/voices-v1.0.bin \
+  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
 
 # 4. Ensure espeak-ng is installed
 #    Ubuntu/Debian: sudo apt install espeak-ng
@@ -99,29 +98,26 @@ See the Kokoro model card for the full list.
 |-----------------|------------------------|------------------------------------|
 | `API_KEY`       | *(empty — all denied)* | Secret key for `X-API-Key` header  |
 | `MODEL_DIR`     | `/app/models`          | Directory containing model files   |
-| `MODEL_FILE`    | `kokoro-v0_19.onnx`    | ONNX model filename               |
-| `VOICES_FILE`   | `voices.bin`           | Voice embeddings filename          |
+| `MODEL_FILE`    | `kokoro-v1.0.onnx`     | ONNX model filename               |
+| `VOICES_FILE`   | `voices-v1.0.bin`      | Voice embeddings filename          |
 | `DEFAULT_VOICE` | `af_heart`             | Default voice when none specified  |
 
 ## Docker
 
-The HuggingFace repo is gated — you need a [HuggingFace access token](https://huggingface.co/settings/tokens) with read access and you must accept the model's terms at [hexgrad/Kokoro-82M-ONNX](https://huggingface.co/hexgrad/Kokoro-82M-ONNX).
+Model weights are downloaded from [kokoro-onnx GitHub releases](https://github.com/thewh1teagle/kokoro-onnx/releases) during `docker build` — no authentication required.
 
 ```bash
-docker build --build-arg HF_TOKEN=hf_YOUR_TOKEN -t kokoro-tts-gateway .
+docker build -t kokoro-tts-gateway .
 docker run -p 8000:8000 -e API_KEY=my-secret kokoro-tts-gateway
 ```
 
-Model weights are downloaded during `docker build` so the container starts without network fetches.
+The container starts instantly with no runtime downloads.
 
-To use a different model repo or filenames:
+To use the smaller int8 model (88 MB instead of 310 MB):
 
 ```bash
 docker build \
-  --build-arg HF_TOKEN=hf_YOUR_TOKEN \
-  --build-arg HF_REPO=hexgrad/Kokoro-82M-ONNX \
-  --build-arg MODEL_FILE=kokoro-v0_19.onnx \
-  --build-arg VOICES_FILE=voices.bin \
+  --build-arg MODEL_FILE=kokoro-v1.0.int8.onnx \
   -t kokoro-tts-gateway .
 ```
 
@@ -137,8 +133,8 @@ fly apps create kokoro-tts-gateway
 # 3. Set secrets
 fly secrets set API_KEY=my-secret
 
-# 4. Deploy (pass HF token for model download)
-fly deploy --build-arg HF_TOKEN=hf_YOUR_TOKEN
+# 4. Deploy
+fly deploy
 
 # 5. Verify
 curl https://kokoro-tts-gateway.fly.dev/health

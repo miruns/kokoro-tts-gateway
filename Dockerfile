@@ -13,21 +13,18 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ── download model weights at build time ─────────────────────────────
-# The HF repo is gated — pass a token via:
-#   docker build --build-arg HF_TOKEN=hf_xxx ...
-# Override repo/filenames with build-args if upstream changes.
-ARG HF_REPO=hexgrad/Kokoro-82M-ONNX
-ARG MODEL_FILE=kokoro-v0_19.onnx
-ARG VOICES_FILE=voices.bin
-ARG HF_TOKEN=""
+# Downloaded from https://github.com/thewh1teagle/kokoro-onnx/releases
+# Override filenames with build-args (e.g. kokoro-v1.0.int8.onnx for 88 MB).
+ARG RELEASE_TAG=model-files-v1.0
+ARG MODEL_FILE=kokoro-v1.0.onnx
+ARG VOICES_FILE=voices-v1.0.bin
 
-RUN python -c "\
-import os; \
-os.environ['HF_TOKEN'] = '${HF_TOKEN}'; \
-from huggingface_hub import hf_hub_download; \
-hf_hub_download('${HF_REPO}', '${MODEL_FILE}', local_dir='/app/models'); \
-hf_hub_download('${HF_REPO}', '${VOICES_FILE}', local_dir='/app/models'); \
-print('Models downloaded successfully')"
+RUN mkdir -p /app/models && \
+    curl -fSL -o /app/models/${MODEL_FILE} \
+      "https://github.com/thewh1teagle/kokoro-onnx/releases/download/${RELEASE_TAG}/${MODEL_FILE}" && \
+    curl -fSL -o /app/models/${VOICES_FILE} \
+      "https://github.com/thewh1teagle/kokoro-onnx/releases/download/${RELEASE_TAG}/${VOICES_FILE}" && \
+    echo "Models downloaded successfully"
 
 # ── application ──────────────────────────────────────────────────────
 COPY app/ app/
