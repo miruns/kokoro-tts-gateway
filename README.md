@@ -33,7 +33,8 @@ python -m venv .venv && source .venv/bin/activate  # or .venv\Scripts\activate o
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Download model files
+# 3. Download model files (requires a HuggingFace token with access to hexgrad/Kokoro-82M-ONNX)
+export HF_TOKEN=hf_YOUR_TOKEN
 python -c "
 from huggingface_hub import hf_hub_download
 hf_hub_download('hexgrad/Kokoro-82M-ONNX', 'kokoro-v0_19.onnx', local_dir='models')
@@ -104,8 +105,10 @@ See the Kokoro model card for the full list.
 
 ## Docker
 
+The HuggingFace repo is gated — you need a [HuggingFace access token](https://huggingface.co/settings/tokens) with read access and you must accept the model's terms at [hexgrad/Kokoro-82M-ONNX](https://huggingface.co/hexgrad/Kokoro-82M-ONNX).
+
 ```bash
-docker build -t kokoro-tts-gateway .
+docker build --build-arg HF_TOKEN=hf_YOUR_TOKEN -t kokoro-tts-gateway .
 docker run -p 8000:8000 -e API_KEY=my-secret kokoro-tts-gateway
 ```
 
@@ -115,6 +118,7 @@ To use a different model repo or filenames:
 
 ```bash
 docker build \
+  --build-arg HF_TOKEN=hf_YOUR_TOKEN \
   --build-arg HF_REPO=hexgrad/Kokoro-82M-ONNX \
   --build-arg MODEL_FILE=kokoro-v0_19.onnx \
   --build-arg VOICES_FILE=voices.bin \
@@ -130,11 +134,11 @@ fly auth login
 # 2. Create the app (edit fly.toml app name first)
 fly apps create kokoro-tts-gateway
 
-# 3. Set the API key secret
+# 3. Set secrets
 fly secrets set API_KEY=my-secret
 
-# 4. Deploy
-fly deploy
+# 4. Deploy (pass HF token for model download)
+fly deploy --build-arg HF_TOKEN=hf_YOUR_TOKEN
 
 # 5. Verify
 curl https://kokoro-tts-gateway.fly.dev/health

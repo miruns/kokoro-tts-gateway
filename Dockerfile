@@ -13,12 +13,17 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ── download model weights at build time ─────────────────────────────
-# Override these build-args if the upstream repo or filenames change.
+# The HF repo is gated — pass a token via:
+#   docker build --build-arg HF_TOKEN=hf_xxx ...
+# Override repo/filenames with build-args if upstream changes.
 ARG HF_REPO=hexgrad/Kokoro-82M-ONNX
 ARG MODEL_FILE=kokoro-v0_19.onnx
 ARG VOICES_FILE=voices.bin
+ARG HF_TOKEN=""
 
 RUN python -c "\
+import os; \
+os.environ['HF_TOKEN'] = '${HF_TOKEN}'; \
 from huggingface_hub import hf_hub_download; \
 hf_hub_download('${HF_REPO}', '${MODEL_FILE}', local_dir='/app/models'); \
 hf_hub_download('${HF_REPO}', '${VOICES_FILE}', local_dir='/app/models'); \
