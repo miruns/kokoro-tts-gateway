@@ -1,0 +1,123 @@
+{
+  "info": {
+    "name": "Kokoro TTS Gateway",
+    "description": "REST API for Kokoro-82M Text-to-Speech with streaming audio responses.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "api_key",
+      "value": "test-key"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "auth": {
+          "type": "noauth"
+        },
+        "description": "Public health-check endpoint. No authentication required."
+      }
+    },
+    {
+      "name": "TTS - Default Voice",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/tts",
+          "host": ["{{base_url}}"],
+          "path": ["tts"]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"Hello from Kokoro! This is a test of the text to speech gateway.\"\n}"
+        },
+        "description": "Generate speech with the default voice (af_heart). Returns streaming audio/wav."
+      }
+    },
+    {
+      "name": "TTS - Custom Voice & Speed",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/tts",
+          "host": ["{{base_url}}"],
+          "path": ["tts"]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"This is a test with a custom voice and speed setting.\",\n  \"voice\": \"am_adam\",\n  \"speed\": 1.2\n}"
+        },
+        "description": "Generate speech with a specific voice and speed. Returns streaming audio/wav."
+      }
+    },
+    {
+      "name": "TTS - Unauthorized (no key)",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/tts",
+          "host": ["{{base_url}}"],
+          "path": ["tts"]
+        },
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"This should fail with 403.\"\n}"
+        },
+        "description": "Verify that requests without X-API-Key are rejected with 403."
+      }
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_source": "insomnia",
+  "resources": [
+    {
+      "_id": "wrk_kokoro",
+      "_type": "workspace",
+      "name": "Kokoro TTS Gateway",
+      "description": "REST API for Kokoro-82M Text-to-Speech with streaming audio responses."
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_kokoro",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8000",
+        "api_key": "test-key"
+      }
+    },
+    {
+      "_id": "env_production",
+      "_type": "environment",
+      "parentId": "env_base",
+      "name": "Production",
+      "data": {
+        "base_url": "https://kokoro-tts-gateway.fly.dev",
+        "api_key": ""
+      }
+    },
+    {
+      "_id": "fld_tts",
+      "_type": "request_group",
+      "parentId": "wrk_kokoro",
+      "name": "TTS API"
+    },
+    {
+      "_id": "req_health",
+      "_type": "request",
+      "parentId": "fld_tts",
+      "name": "Health Check",
+      "method": "GET",
+      "url": "{{ _.base_url }}/health",
+      "description": "Public health-check endpoint. No authentication required.",
+      "authentication": {},
+      "headers": []
+    },
+    {
+      "_id": "req_tts_default",
+      "_type": "request",
+      "parentId": "fld_tts",
+      "name": "TTS - Default Voice",
+      "method": "POST",
+      "url": "{{ _.base_url }}/tts",
+      "description": "Generate speech with the default voice (af_heart). Returns streaming audio/wav.",
+      "authentication": {
+        "type": "apikey",
+        "key": "X-API-Key",
+        "value": "{{ _.api_key }}",
+        "addTo": "header"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"text\": \"Hello from Kokoro! This is a test of the text to speech gateway.\"\n}"
+      }
+    },
+    {
+      "_id": "req_tts_custom",
+      "_type": "request",
+      "parentId": "fld_tts",
+      "name": "TTS - Custom Voice & Speed",
+      "method": "POST",
+      "url": "{{ _.base_url }}/tts",
+      "description": "Generate speech with a specific voice and speed. Returns streaming audio/wav.",
+      "authentication": {
+        "type": "apikey",
+        "key": "X-API-Key",
+        "value": "{{ _.api_key }}",
+        "addTo": "header"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"text\": \"This is a test with a custom voice and speed setting.\",\n  \"voice\": \"am_adam\",\n  \"speed\": 1.2\n}"
+      }
+    },
+    {
+      "_id": "req_tts_noauth",
+      "_type": "request",
+      "parentId": "fld_tts",
+      "name": "TTS - Unauthorized (no key)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/tts",
+      "description": "Verify that requests without X-API-Key are rejected with 403.",
+      "authentication": {},
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"text\": \"This should fail with 403.\"\n}"
+      }
+    }
+  ]
+}
