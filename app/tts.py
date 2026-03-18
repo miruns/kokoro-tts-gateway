@@ -10,7 +10,7 @@ class TTSEngine:
     def __init__(self, model_path: str, voices_path: str) -> None:
         self.kokoro = Kokoro(model_path, voices_path)
 
-    def stream(
+    async def stream(
         self,
         text: str,
         voice: str = "af_heart",
@@ -20,7 +20,7 @@ class TTSEngine:
         sample_rate = 24000
         yield _wav_header(sample_rate)
 
-        for samples, _sr in self.kokoro.create_stream(
+        async for samples, _sr in self.kokoro.create_stream(
             text, voice=voice, speed=speed
         ):
             pcm = (samples * 32767).clip(-32768, 32767).astype(np.int16)
