@@ -1,32 +1,36 @@
-# Replace "kokoro-tts-gateway" with your Fly.io app name.
-app = "kokoro-tts-gateway"
-primary_region = "iad"
+# fly.toml app configuration file generated for kokoro-tts-gateway on 2026-03-18T08:08:25-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'kokoro-tts-gateway'
+primary_region = 'lhr'
 
 [build]
 
 [env]
-  MODEL_DIR = "/app/models"
+  MODEL_DIR = '/app/models'
 
 [http_service]
   internal_port = 8000
   force_https = true
-  auto_stop_machines = "stop"
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
 
   [http_service.concurrency]
-    type = "requests"
+    type = 'requests'
     hard_limit = 2
     soft_limit = 1
 
   [[http_service.checks]]
-    grace_period = "30s"
-    interval = "30s"
-    method = "GET"
-    path = "/health"
-    timeout = "5s"
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '30s'
+    method = 'GET'
+    path = '/health'
 
 [[vm]]
-  memory = "1gb"
-  cpu_kind = "shared"
+  memory = '1gb'
   cpus = 1
+  memory_mb = 1024
